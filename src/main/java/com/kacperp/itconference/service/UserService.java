@@ -1,6 +1,8 @@
 package com.kacperp.itconference.service;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -11,6 +13,7 @@ import com.kacperp.itconference.Constant;
 import com.kacperp.itconference.domain.Role;
 import com.kacperp.itconference.domain.User;
 import com.kacperp.itconference.dto.SignupDTO;
+import com.kacperp.itconference.dto.UserInfoDTO;
 import com.kacperp.itconference.exception.UserException;
 import com.kacperp.itconference.repository.RoleRepository;
 import com.kacperp.itconference.repository.UserRepository;
@@ -28,6 +31,21 @@ public class UserService {
 		this.passwordEncoder = passwordEncoder;
 	}
 
+	public List<UserInfoDTO> getAll() {
+		List<User> users = userRepository.findAll();
+		List<UserInfoDTO> usersDTO = new ArrayList<>();
+
+		for (User u : users) {
+			UserInfoDTO userDTO = new UserInfoDTO();
+			userDTO.setId(u.getId());
+			userDTO.setUsername(u.getUsername());
+			userDTO.setEmail(u.getEmail());
+			usersDTO.add(userDTO);
+		}
+
+		return usersDTO;
+	}
+
 	public void registerUser(SignupDTO signupDTO) throws UserException {
 		if (userRepository.existsByUsername(signupDTO.getUsername())) {
 			throw new UserException("Username is already exists");
@@ -43,14 +61,7 @@ public class UserService {
 		Set<Role> roles = new HashSet<>();
 
 		Optional<Role> userRole = roleRepository.findByName(Constant.DEFAULT_USER_ROLE);
-		if (userRole.isEmpty()) {
-			Role newRole = new Role();
-			newRole.setName(Constant.DEFAULT_USER_ROLE);
-			Role savedRole = roleRepository.save(newRole);
-			roles.add(savedRole);
-		} else {
-			roles.add(userRole.get());
-		}
+		roles.add(userRole.get());
 
 		user.setRoles(roles);
 		userRepository.save(user);
