@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.kacperp.itconference.domain.Conference;
 import com.kacperp.itconference.domain.Lecture;
@@ -21,6 +22,7 @@ import com.kacperp.itconference.repository.NotificationHistoryRepository;
 import com.kacperp.itconference.repository.UserRepository;
 
 @Service
+@Transactional
 public class ConferenceService {
 
 	private final ConferenceRepository conferenceRepository;
@@ -152,6 +154,29 @@ public class ConferenceService {
 		}
 
 		return lectureInfoDTOs;
+	}
+
+	public void cancelLecture(Long lectureId, String username) throws UserException, ConferenceException {
+		User user = userRepository.findByUsername(username).orElseThrow(() -> new UserException("USER NOT FOUND"));
+		Lecture lecture = lectureRepository.findById(lectureId)
+				.orElseThrow(() -> new ConferenceException("LECTURE NOT FOUND"));
+
+		// Sprawdzamy czy uzytkownik rzeczywscie jest zapisany do danego wykladu
+		if (!user.getLectures().contains(lecture)) {
+			throw new ConferenceException("USER DOESN'T BELONG TO THIS LECTURE");
+		}
+
+		// Zabezpieczenie przed wypisaniem sie z przeterminowanego wydarzenia
+		if (lecture.getStartTime().isAfter(LocalDateTime.now())) {
+			throw new ConferenceException("LECTURE HAS ALREADY STARTED");
+		}
+
+		// Aktualizujemy ilosc wolnych miejsc
+
+		user.removeLecture(lecture);
+		lecture.setFreePlaces(lecture.getFreePlaces() + 1);
+		userRepository.save(user);
+
 	}
 
 }

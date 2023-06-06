@@ -3,6 +3,7 @@ package com.kacperp.itconference.controller;
 import java.security.Principal;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -34,6 +35,18 @@ public class ConferenceController {
 	public ResponseEntity<?> joinToLecture(@PathVariable Long id, Principal principal) {
 		try {
 			conferenceService.joinToLecture(id, principal.getName());
+			return ResponseEntity.ok().build();
+		} catch (Exception e) {
+			return ResponseEntity.badRequest().body(e.getMessage());
+
+		}
+
+	}
+
+	@DeleteMapping("/lecture/{id}/users")
+	public ResponseEntity<?> cancelLecture(@PathVariable Long id, Principal principal) {
+		try {
+			conferenceService.cancelLecture(id, principal.getName());
 			return ResponseEntity.ok().build();
 		} catch (Exception e) {
 			return ResponseEntity.badRequest().body(e.getMessage());

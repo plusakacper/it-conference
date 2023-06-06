@@ -38,7 +38,7 @@ public class DataInit {
 			roles.add(savedRole);
 
 			// Tworzymy testowego usera
-			User user1 = new User("user", "user@itconferenece.pl", encoder.encode("password"));
+			User user1 = new User("user1", "user@itconferenece.pl", encoder.encode("password"));
 			user1.setRoles(roles);
 			userRepository.save(user1);
 

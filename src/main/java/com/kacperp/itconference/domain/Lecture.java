@@ -6,7 +6,6 @@ import java.util.Objects;
 import java.util.Set;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -31,7 +30,7 @@ public class Lecture {
 	@ManyToOne
 	private Conference conference;
 
-	@ManyToMany(fetch = FetchType.EAGER)
+	@ManyToMany(mappedBy = "lectures")
 	private Set<User> users = new HashSet<>();
 
 	public Long getId() {
@@ -114,19 +113,9 @@ public class Lecture {
 		this.users = users;
 	}
 
-	public void addUser(User user) {
-		this.users.add(user);
-		user.getLectures().add(this);
-	}
-
-	public void removeUser(User user) {
-		this.users.remove(user);
-		user.getLectures().remove(this);
-	}
-
 	@Override
 	public int hashCode() {
-		return Objects.hash(category, endTime, freePlaces, id, lecturer, name, places, startTime);
+		return Objects.hash(category, conference, endTime, freePlaces, id, lecturer, name, places, startTime, users);
 	}
 
 	@Override
@@ -138,10 +127,11 @@ public class Lecture {
 		if (getClass() != obj.getClass())
 			return false;
 		Lecture other = (Lecture) obj;
-		return Objects.equals(category, other.category) && Objects.equals(endTime, other.endTime)
-				&& Objects.equals(freePlaces, other.freePlaces) && Objects.equals(id, other.id)
-				&& Objects.equals(lecturer, other.lecturer) && Objects.equals(name, other.name)
-				&& Objects.equals(places, other.places) && Objects.equals(startTime, other.startTime);
+		return Objects.equals(category, other.category) && Objects.equals(conference, other.conference)
+				&& Objects.equals(endTime, other.endTime) && Objects.equals(freePlaces, other.freePlaces)
+				&& Objects.equals(id, other.id) && Objects.equals(lecturer, other.lecturer)
+				&& Objects.equals(name, other.name) && Objects.equals(places, other.places)
+				&& Objects.equals(startTime, other.startTime) && Objects.equals(users, other.users);
 	}
 
 	@Override
