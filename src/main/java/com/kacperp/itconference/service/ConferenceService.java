@@ -1,5 +1,6 @@
 package com.kacperp.itconference.service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.kacperp.itconference.domain.Conference;
 import com.kacperp.itconference.domain.Lecture;
+import com.kacperp.itconference.domain.NotificationHistory;
 import com.kacperp.itconference.domain.User;
 import com.kacperp.itconference.dto.ConferenceInfoDTO;
 import com.kacperp.itconference.dto.LectureAddDTO;
@@ -15,6 +17,7 @@ import com.kacperp.itconference.exception.ConferenceException;
 import com.kacperp.itconference.exception.UserException;
 import com.kacperp.itconference.repository.ConferenceRepository;
 import com.kacperp.itconference.repository.LectureRepository;
+import com.kacperp.itconference.repository.NotificationHistoryRepository;
 import com.kacperp.itconference.repository.UserRepository;
 
 @Service
@@ -23,12 +26,14 @@ public class ConferenceService {
 	private final ConferenceRepository conferenceRepository;
 	private final LectureRepository lectureRepository;
 	private final UserRepository userRepository;
+	private final NotificationHistoryRepository notificationHistoryRepository;
 
 	public ConferenceService(ConferenceRepository conferenceRepository, LectureRepository lectureRepository,
-			UserRepository userRepository) {
+			UserRepository userRepository, NotificationHistoryRepository notificationHistoryRepository) {
 		this.conferenceRepository = conferenceRepository;
 		this.lectureRepository = lectureRepository;
 		this.userRepository = userRepository;
+		this.notificationHistoryRepository = notificationHistoryRepository;
 	}
 
 	public void addLecture(LectureAddDTO dto) throws ConferenceException {
@@ -115,6 +120,20 @@ public class ConferenceService {
 		user.addLecture(lecture);
 
 		userRepository.save(user);
+
+		// Wysylamy do uzytkownika maila (zgodnie z poleceniem nie wysylania maila, a
+		// jedynie pozostawiamy slad w historii)
+		NotificationHistory notificationHistory = new NotificationHistory();
+		notificationHistory.setUsername(user.getUsername());
+		notificationHistory.setEmail(user.getEmail());
+		notificationHistory.setDateOfJoining(LocalDateTime.now());
+		notificationHistory.setLectureId(lecture.getId());
+		// Majac informacje czy mail zostal wyslany mozemy pozniej stworzyc scheduler,
+		// ktory np. sprawdzi czy sa w bazie niewyslane maile i je wysle
+		notificationHistory.setMailSend(false);
+
+		notificationHistoryRepository.save(notificationHistory);
+
 	}
 
 	public List<LectureInfoDTO> getUserLectures(String username) throws UserException {
