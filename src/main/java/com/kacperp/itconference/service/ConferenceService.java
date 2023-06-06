@@ -2,7 +2,11 @@ package com.kacperp.itconference.service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.OptionalDouble;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +18,8 @@ import com.kacperp.itconference.domain.User;
 import com.kacperp.itconference.dto.ConferenceInfoDTO;
 import com.kacperp.itconference.dto.LectureAddDTO;
 import com.kacperp.itconference.dto.LectureInfoDTO;
+import com.kacperp.itconference.dto.ReportByCategoryDTO;
+import com.kacperp.itconference.dto.ReportByLectureDTO;
 import com.kacperp.itconference.exception.ConferenceException;
 import com.kacperp.itconference.exception.UserException;
 import com.kacperp.itconference.repository.ConferenceRepository;
@@ -177,6 +183,63 @@ public class ConferenceService {
 		lecture.setFreePlaces(lecture.getFreePlaces() + 1);
 		userRepository.save(user);
 
+	}
+
+	public List<ReportByLectureDTO> generateLectureRaport(Long id) throws ConferenceException {
+		Conference conference = conferenceRepository.findById(id)
+				.orElseThrow(() -> new ConferenceException("CONFERENCE NOT FOUND"));
+
+		List<ReportByLectureDTO> report = new ArrayList<>();
+		for (Lecture l : conference.getLectures()) {
+			ReportByLectureDTO lecture = new ReportByLectureDTO();
+			lecture.setLectureId(l.getId());
+			lecture.setName(l.getName());
+			lecture.setLecturer(l.getLecturer());
+			lecture.setStartTime(l.getStartTime());
+			lecture.setEndTime(l.getEndTime());
+			lecture.setCategory(l.getCategory());
+			lecture.setAttendance(((l.getPlaces() - l.getFreePlaces()) / (double) l.getPlaces()) * 100);
+			report.add(lecture);
+		}
+		report.sort(Comparator.comparing(ReportByLectureDTO::getAttendance).reversed());
+
+		return report;
+	}
+
+	public List<ReportByCategoryDTO> generateCategoryReport(Long id) throws ConferenceException {
+		Conference conference = conferenceRepository.findById(id)
+				.orElseThrow(() -> new ConferenceException("CONFERENCE NOT FOUND"));
+
+		Map<String, List<Double>> map = new HashMap<>();
+
+		for (Lecture l : conference.getLectures()) {
+			Double value = ((l.getPlaces() - l.getFreePlaces()) / (double) l.getPlaces()) * 100;
+			List<Double> list = map.get(l.getCategory());
+
+			if (list == null) {
+				List<Double> newList = new ArrayList<>();
+				newList.add(value);
+				map.put(l.getCategory(), newList);
+			} else {
+
+				list.add(value);
+
+			}
+
+		}
+		List<ReportByCategoryDTO> report = new ArrayList<>();
+		for (String key : map.keySet()) {
+			List<Double> list = map.get(key);
+
+			OptionalDouble average = list.stream().mapToDouble(a -> a).average();
+			ReportByCategoryDTO category = new ReportByCategoryDTO();
+			category.setCategory(key);
+			category.setAttendance(average.getAsDouble());
+			report.add(category);
+		}
+
+		report.sort(Comparator.comparing(ReportByCategoryDTO::getAttendance).reversed());
+		return report;
 	}
 
 }

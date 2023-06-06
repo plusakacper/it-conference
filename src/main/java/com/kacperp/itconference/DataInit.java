@@ -92,7 +92,7 @@ public class DataInit {
 			conferenceService.joinToLecture(1L, user1.getUsername());
 			conferenceService.joinToLecture(4L, user1.getUsername());
 			conferenceService.joinToLecture(2L, user2.getUsername());
-			conferenceService.joinToLecture(5L, user2.getUsername());
+			conferenceService.joinToLecture(4L, user2.getUsername());
 		};
 	}
 

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.kacperp.itconference.exception.ConferenceException;
 import com.kacperp.itconference.service.ConferenceService;
 
 @RestController
@@ -65,6 +66,24 @@ public class ConferenceController {
 
 		}
 
+	}
+
+	@GetMapping("/{id}/lectures/report")
+	public ResponseEntity<?> generateLectureReport(@PathVariable Long id) {
+		try {
+			return ResponseEntity.ok(conferenceService.generateLectureRaport(id));
+		} catch (ConferenceException e) {
+			return ResponseEntity.badRequest().body(e.getMessage());
+		}
+	}
+
+	@GetMapping("/{id}/category/report")
+	public ResponseEntity<?> generateCategoryReport(@PathVariable Long id) {
+		try {
+			return ResponseEntity.ok(conferenceService.generateCategoryReport(id));
+		} catch (ConferenceException e) {
+			return ResponseEntity.badRequest().body(e.getMessage());
+		}
 	}
 
 }
