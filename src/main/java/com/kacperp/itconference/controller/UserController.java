@@ -30,7 +30,7 @@ public class UserController {
 		return ResponseEntity.ok(userService.getAll());
 	}
 
-	@PatchMapping("/user/{id}/email")
+	@PatchMapping("/user/email")
 	public ResponseEntity<?> updateEmail(Principal principal, @RequestBody @Valid ChangeEmailDTO dto) {
 		try {
 			userService.updateEmail(principal.getName(), dto.getEmail());
