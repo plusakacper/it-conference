@@ -67,4 +67,15 @@ public class UserService {
 		userRepository.save(user);
 	}
 
+	public void updateEmail(String username, String newEmail) throws UserException {
+		if (userRepository.existsByEmail(newEmail)) {
+			throw new UserException("Email is already exists");
+		}
+
+		User user = userRepository.findByUsername(username).orElseThrow(() -> new UserException("USER NOT FOUND"));
+
+		user.setEmail(newEmail);
+		userRepository.save(user);
+	}
+
 }
