@@ -38,9 +38,14 @@ public class DataInit {
 			roles.add(savedRole);
 
 			// Tworzymy testowego usera
-			User user = new User("user", "user@itconferenece.pl", encoder.encode("password"));
-			user.setRoles(roles);
-			userRepository.save(user);
+			User user1 = new User("user", "user@itconferenece.pl", encoder.encode("password"));
+			user1.setRoles(roles);
+			userRepository.save(user1);
+
+			// Tworzymy testowego usera2
+			User user2 = new User("user2", "user2@itconferenece.pl", encoder.encode("password"));
+			user2.setRoles(roles);
+			userRepository.save(user2);
 
 			// Tworzymy konferencje zgodna z opisem z zadania
 			Conference conference = new Conference();
@@ -84,6 +89,10 @@ public class DataInit {
 					lecture2_3, lecture3_1, lecture3_2, lecture3_3);
 			conferenceService.addLectures(lectures);
 
+			conferenceService.joinToLecture(1L, user1.getUsername());
+			conferenceService.joinToLecture(4L, user1.getUsername());
+			conferenceService.joinToLecture(2L, user2.getUsername());
+			conferenceService.joinToLecture(5L, user2.getUsername());
 		};
 	}
 

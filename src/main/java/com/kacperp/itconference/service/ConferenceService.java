@@ -7,10 +7,12 @@ import org.springframework.stereotype.Service;
 
 import com.kacperp.itconference.domain.Conference;
 import com.kacperp.itconference.domain.Lecture;
+import com.kacperp.itconference.domain.User;
 import com.kacperp.itconference.dto.ConferenceInfoDTO;
 import com.kacperp.itconference.dto.LectureAddDTO;
 import com.kacperp.itconference.dto.LectureInfoDTO;
 import com.kacperp.itconference.exception.ConferenceException;
+import com.kacperp.itconference.exception.UserException;
 import com.kacperp.itconference.repository.ConferenceRepository;
 import com.kacperp.itconference.repository.LectureRepository;
 import com.kacperp.itconference.repository.UserRepository;
@@ -83,6 +85,54 @@ public class ConferenceService {
 		conferenceInfoDTO.setLectures(lectureInfoDTOs);
 
 		return conferenceInfoDTO;
+	}
+
+	public void joinToLecture(Long lectureId, String username) throws UserException, ConferenceException {
+		User user = userRepository.findByUsername(username).orElseThrow(() -> new UserException("USER NOT FOUND"));
+		Lecture lecture = lectureRepository.findById(lectureId)
+				.orElseThrow(() -> new ConferenceException("LECTURE NOT FOUND"));
+
+		// Sprawdzamy czy sa wolne miejsca
+		if (lecture.getFreePlaces() == 0) {
+			throw new ConferenceException("NO PLACES AVAILABLE");
+		}
+
+		// Sprawdzamy czy uzytkownik nalezy juz do danego wykladu
+		if (user.getLectures().contains(lecture)) {
+			throw new ConferenceException("USER ALREADY BELONG TO LECTURE");
+		}
+
+		// Sprawdzamy czy w czasie wydarzenia na ktore zapisujemy, uzytkownik nie jest
+		// juz zapisany do innego wydarzenia
+		for (Lecture l : user.getLectures()) {
+			if (lecture.getStartTime().isBefore(l.getEndTime()) && lecture.getEndTime().isAfter(l.getStartTime())) {
+				throw new ConferenceException("AT THIS TIME YOU ARE ATTENDING ANOTHER LECTURE");
+			}
+		}
+
+		// Aktualizujemy ilosc wolnych miejsc
+		lecture.setFreePlaces(lecture.getFreePlaces() - 1);
+		user.addLecture(lecture);
+
+		userRepository.save(user);
+	}
+
+	public List<LectureInfoDTO> getUserLectures(String username) throws UserException {
+		User user = userRepository.findByUsername(username).orElseThrow(() -> new UserException("USER NOT FOUND"));
+
+		List<LectureInfoDTO> lectureInfoDTOs = new ArrayList<>();
+		for (Lecture l : user.getLectures()) {
+			LectureInfoDTO lectureInfoDTO = new LectureInfoDTO();
+			lectureInfoDTO.setConferenceName(l.getConference().getName());
+			lectureInfoDTO.setLectureName(l.getName());
+			lectureInfoDTO.setLecturer(l.getLecturer());
+			lectureInfoDTO.setStartTime(l.getStartTime());
+			lectureInfoDTO.setEndTime(l.getEndTime());
+			lectureInfoDTO.setCategory(l.getCategory());
+			lectureInfoDTOs.add(lectureInfoDTO);
+		}
+
+		return lectureInfoDTOs;
 	}
 
 }

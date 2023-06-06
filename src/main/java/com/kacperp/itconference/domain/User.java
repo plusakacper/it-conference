@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -28,6 +29,10 @@ public class User {
 	@ManyToMany(fetch = FetchType.LAZY)
 	@JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
 	private Set<Role> roles = new HashSet<>();
+
+	@ManyToMany(cascade = { CascadeType.MERGE, CascadeType.PERSIST }, fetch = FetchType.EAGER)
+	@JoinTable(name = "user_lectures", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "lecture_id"))
+	private Set<Lecture> lectures = new HashSet<>();
 
 	public User() {
 	}
@@ -76,6 +81,24 @@ public class User {
 
 	public void setRoles(Set<Role> roles) {
 		this.roles = roles;
+	}
+
+	public Set<Lecture> getLectures() {
+		return lectures;
+	}
+
+	public void setLectures(Set<Lecture> lectures) {
+		this.lectures = lectures;
+	}
+
+	public void addLecture(Lecture lecture) {
+		this.lectures.add(lecture);
+		lecture.getUsers().add(this);
+	}
+
+	public void removeLecture(Lecture lecture) {
+		this.lectures.remove(lecture);
+		lecture.getUsers().remove(this);
 	}
 
 	@Override

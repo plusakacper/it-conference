@@ -1,12 +1,16 @@
 package com.kacperp.itconference.domain;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
@@ -26,6 +30,9 @@ public class Lecture {
 	private Integer freePlaces;
 	@ManyToOne
 	private Conference conference;
+
+	@ManyToMany(fetch = FetchType.EAGER)
+	private Set<User> users = new HashSet<>();
 
 	public Long getId() {
 		return id;
@@ -97,6 +104,24 @@ public class Lecture {
 
 	public void setConference(Conference conference) {
 		this.conference = conference;
+	}
+
+	public Set<User> getUsers() {
+		return users;
+	}
+
+	public void setUsers(Set<User> users) {
+		this.users = users;
+	}
+
+	public void addUser(User user) {
+		this.users.add(user);
+		user.getLectures().add(this);
+	}
+
+	public void removeUser(User user) {
+		this.users.remove(user);
+		user.getLectures().remove(this);
 	}
 
 	@Override
