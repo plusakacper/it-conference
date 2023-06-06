@@ -1,12 +1,15 @@
 package com.kacperp.itconference.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
 import com.kacperp.itconference.domain.Conference;
 import com.kacperp.itconference.domain.Lecture;
+import com.kacperp.itconference.dto.ConferenceInfoDTO;
 import com.kacperp.itconference.dto.LectureAddDTO;
+import com.kacperp.itconference.dto.LectureInfoDTO;
 import com.kacperp.itconference.exception.ConferenceException;
 import com.kacperp.itconference.repository.ConferenceRepository;
 import com.kacperp.itconference.repository.LectureRepository;
@@ -53,6 +56,33 @@ public class ConferenceService {
 		for (LectureAddDTO lecture : lectures) {
 			addLecture(lecture);
 		}
+	}
+
+	public ConferenceInfoDTO getConferenceInfo(Long conferenceId) throws ConferenceException {
+		Conference conference = conferenceRepository.findById(conferenceId)
+				.orElseThrow(() -> new ConferenceException("CONFERENCE NOT FOUND"));
+
+		List<Lecture> lectures = conference.getLectures();
+
+		ConferenceInfoDTO conferenceInfoDTO = new ConferenceInfoDTO();
+		conferenceInfoDTO.setName(conference.getName());
+		conferenceInfoDTO.setStartTime(conference.getStartTime());
+		conferenceInfoDTO.setEndTime(conference.getEndTime());
+
+		List<LectureInfoDTO> lectureInfoDTOs = new ArrayList<>();
+		for (Lecture l : lectures) {
+			LectureInfoDTO lectureInfoDTO = new LectureInfoDTO();
+			lectureInfoDTO.setConferenceName(conference.getName());
+			lectureInfoDTO.setLectureName(l.getName());
+			lectureInfoDTO.setLecturer(l.getLecturer());
+			lectureInfoDTO.setStartTime(l.getStartTime());
+			lectureInfoDTO.setEndTime(l.getEndTime());
+			lectureInfoDTO.setCategory(l.getCategory());
+			lectureInfoDTOs.add(lectureInfoDTO);
+		}
+		conferenceInfoDTO.setLectures(lectureInfoDTOs);
+
+		return conferenceInfoDTO;
 	}
 
 }
